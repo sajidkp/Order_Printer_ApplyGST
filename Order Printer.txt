@@ -1,0 +1,152 @@
+<br /><br />
+<p style="float: right; text-align: right; margin: 0;">
+  Invoice No: <strong>{{ order_name }}</strong><br />
+  Date: {{ "now" | date: "%d/%m/%y" }}
+</p>
+
+<div style="float: left; margin: 0 0 1.5em 0;" >
+  <img src="https://cdn.shopify.com/s/files/1/1179/5226/files/wisholize_Logo_B_W_5x3.png?2563243096476741661" style="max-width:150px;">
+  <!-- <strong style="font-size: 2em;">{{ shop_name }}</strong>  -->
+  
+  <br /> 
+  {{ shop.address }}<br/> 
+  North Janatha Road, {{ shop.city }} <br />
+  Ernakulam, {{ shop.province }} - {{ shop.zip | upcase }}<br/>
+</div>
+
+<hr />
+
+<h3 style="margin: 0 0 1em 0;">Item Details</h3>
+
+<table class="table-tabular" style="margin: 0 0 1.5em 0;">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Quantity</th>
+      {% if show_line_item_taxes %}
+      <th>Taxes</th>
+      {% endif %}
+      <th>Rate</th>
+      <th>Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for line_item in line_items %}
+      <tr>
+        <td><b>{{ line_item.title }}</b></td>
+        <td>{{ line_item.quantity }} x</td>
+        {% if line_item.tax_lines %}
+          <td>
+            {% for tax_line in line_item.tax_lines %}
+              {{ tax_line.price | money }} {{ tax_line.title }}<br/>
+            {% endfor %}
+          </td>
+        {% endif %}
+        <td>
+        {{ line_item.price | money }}
+        </td>
+        <td>
+        {{ line_item.line_price | money }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if transactions.size > 1 %}
+  <h3 style="margin: 0 0 1em 0;">Transaction Details</h3>
+  <table class="table-tabular" style="margin: 0 0 1.5em 0;">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Kind</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+{% if transaction.status != 'failure' %}     
+        <tr>
+            <td>{{ transaction.gateway | payment_method }}</td>
+          <td>{{ transaction.amount | money }}</td>
+          <td>{{ transaction.kind }}</td>
+          <td>{{ transaction.status }}</td>
+        </tr>
+{% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<h3 style="margin: 0 0 1em 0;">Payment Details</h3>
+
+<table class="table-tabular" style="margin: 0 0 1.5em 0;">
+  <tr>
+    <td>Subtotal price:</td>
+    <td>{{ subtotal_price | money }}</td>
+  </tr>
+  {% for discount in discounts %}
+  <tr>
+    <td>Includes discount "{{ discount.code }}"</td>
+    <td>{{ discount.savings | money }}</td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <td>Total tax:</td>
+    <td>{{ tax_price | money }}</td>
+  </tr>
+  {% if shipping_address %}
+    <tr>
+      <td>Shipping:</td>
+      <td>{{ shipping_price | money }}</td>
+    </tr>
+  {% endif %}
+  <tr>
+    <td><strong>Total price:</strong></td>
+    <td><strong>{{ total_price | money }}</strong></td>
+  </tr>
+  {% if total_paid != total_price %}
+    <tr>
+      <td><strong>Total paid:</strong></td>
+      <td><strong>{{ total_paid | money }}</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Outstanding Amount:</strong></td>
+      <td><strong>{{ total_price | minus: total_paid | money }}</strong></td>
+    </tr>
+  {% endif %}
+</table>
+<!--Sajid entering reg. address -->
+<p style="margin-bottom:17px; font-size:xx-small">Registered Office Address: Wisholize India Pvt. Ltd., PP 11/1123, Peravoor Shopping Complex, Kottiyoor road, Peravoor(PO), Kannur, Kerala 670673</p>
+
+
+<div style="    
+    border:1px solid black;
+    float: right;
+    padding: 1em 1em 1em 1em ;
+    max-width:200px;
+    text-align: center">
+    For Wisholize India Pvt. Ltd.<br />
+    <div style="margin-left:50px"><img src="https://cdn.shopify.com/s/files/1/1179/5226/files/for_wisholzie_print_upload.jpg?12099961258962749678" width="60% height="60%" ></div>
+    <br />Authorized Signature</div>
+
+{% if shipping_address %}
+  <h3 style="margin: 0 0 0 0;">Shipping Details</h3>
+
+  <div style="margin: 0 0 0 0; padding: 1em;">
+    <strong>{{ shipping_address.name }}</strong><br/>
+    {% if shipping_address.company %}
+      {{ shipping_address.company }}<br/>
+    {% endif %}
+    {{ shipping_address.street }}<br/>
+    {{ shipping_address.city }}
+    {{ shipping_address.province }}
+    {{ shipping_address.zip | upcase }}<br/>
+    {{ shipping_address.country }}<br />
+    Ph: {{ shipping_address.phone }} <br />
+    Email: {{ customer.email }}
+  </div>
+{% endif %}
+
+<p>If you have any questions, please send an email to <u>{{ shop.email }}</u></p>
