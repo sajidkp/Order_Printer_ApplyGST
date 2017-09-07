@@ -40,14 +40,17 @@
 	mso-pattern:auto;
 	white-space:normal;}
 -->
-.table-tabular td{	
+.table-ItemDetails td{	
 border:.5pt solid windowtext;
-
 text-align: center;
+}
+
+.paymentColumn{
+width: 535px !important;
 }
 </style>
 
-<br />
+<div style="text-align:center">TAX INVOICE</div><br />
 <p style="float: right; text-align: right; margin: 0;">
   Invoice No: <strong>{{ order_name }}</strong><br />
   Date: {{ "now" | date: "%d/%m/%y" }}
@@ -56,15 +59,16 @@ text-align: center;
   <!-- <strong style="font-size: 2em;">{{ shop_name }}</strong>  -->
 <br/>
   <table>
-<tr> 
-<td width= 500>
+<tr style="font-size:12px;"> 
+<td width= 550 style= "vertical-align:top;">
 Wisholize India Private Limited <br />
   {{ shop.address }}<br/> 
   North Janatha Road, {{ shop.city }} <br />
   Ernakulam, {{ shop.province }} - {{ shop.zip | upcase }}<br/>
-  GSTIN: 32AABCW8107G1ZK 
+  PAN: AAABCW8107G <br/>
+  GSTIN: 32AABCW8107G1ZK <br/>
 </td>
-<td width = auto>
+<td width = auto style="vertical-align:top;">
 <strong>Billing Address:</strong> <br/>
 	{{ billing_address.name }}<br/>
     {% if billing_address.company %}
@@ -77,11 +81,11 @@ Wisholize India Private Limited <br />
     {{ billing_address.country }}<br />
 </td></tr>
 </table>
-<hr />
+<hr style="margin:0.5em 0 1em 0;" />
 
-<h4 style="margin: 0 0 1em 0;">Item Details</h4>
+<h4 style="margin: 0 0 0.5em 0;">Item Details</h4>
 
-<table class="table-tabular" style="margin: 0 0 1.5em 0;">
+<table class="table-tabular table-ItemDetails" style="margin: 0 0 1em 0;">
   <thead>
     <col width=64 style='mso-width-source:userset;mso-width-alt:2340;width:48pt'>
  <col width=49 style='mso-width-source:userset;mso-width-alt:1792;width:37pt'>
@@ -100,7 +104,13 @@ Wisholize India Private Limited <br />
   <td rowspan=2 class=xl6326267 width=48 style='width:36pt'>Unit Price</td>
   <td rowspan=2 class=xl6326267 width=54 style='width:41pt'>Net Price</td>
   <td colspan=2 class=xl6326267 width=91 style='border-left:none;width:70pt'>CGST</td>
-  <td colspan=2 class=xl6326267 width=91 style='border-left:none;width:69pt'>SGST</td>
+  <td colspan=2 class=xl6326267 width=91 style='border-left:none;width:69pt'>
+  {% if shipping_address.province == 'Kerala' %}
+  SGST
+  {% else %}
+  IGST
+  {% endif %}
+  </td>
   <td rowspan=2 class=xl6326267 width=85 style='width:48pt'>Total</td>
  </tr>
  <tr height=20 style='mso-height-source:userset;height:15.0pt'>
@@ -131,8 +141,9 @@ Wisholize India Private Limited <br />
 			{% for tag in line_item.product.tags %}
 			
 			{% if tag == 'tax' %}
+			{% assign tax_rate = 18_percent %}
           <td style="text-align:center !important;">
-            {% assign price_without_tax = line_item.price | times:100 | divided_by: 18_percent %}
+            {% assign price_without_tax = line_item.price | times:100 | divided_by: tax_rate %}
             {{ price_without_tax | money_without_currency }}      
 				{% if line_item.quantity > 1 %}
 					{% assign price_without_tax = price_without_tax | times: line_item.quantity %}
@@ -145,6 +156,7 @@ Wisholize India Private Limited <br />
 		  
 		  {% if flag == 0 %}
 		  {% assign price_without_tax = line_item.price %}
+		  {% assign tax_rate = 100 %}
 		  
 		  <td style="text-align:center !important;">{{ price_without_tax | money_without_currency }}      </td>
 		  {% if line_item.quantity > 1 %}
@@ -157,12 +169,12 @@ Wisholize India Private Limited <br />
 		  <td style="text-align:center !important;">{{ price_without_tax | money_without_currency }}</td>
 		  
 		  <!-- CGST -->
-		  <td style="text-align:center !important;"> {{18_percent | minus: 100 | divided_by: 2 }}%  </td>
+		  <td style="text-align:center !important;"> {{tax_rate | minus: 100 | divided_by: 2 }}%  </td>
 		  <!-- CGST Charge -->
 		  <td style="text-align:center !important;">{{ line_item.line_price | minus: price_without_tax | divided_by: 2 | money_without_currency }}</td>
 		  
 		  <!-- SGST -->
-		  <td style="text-align:center !important;"> {{18_percent | minus: 100 | divided_by: 2 }}%  </td>
+		  <td style="text-align:center !important;"> {{tax_rate | minus: 100 | divided_by: 2 }}%  </td>
 		  <!-- SGST Charge -->
 		  <td style="text-align:center !important;">{{ line_item.line_price | minus: price_without_tax  | divided_by: 2 | money_without_currency }}</td>
 
@@ -180,42 +192,42 @@ Wisholize India Private Limited <br />
   </tbody>
 </table>
 
-<h4 style="margin: 0 0 1em 0;">Payment Details</h4>
+<h4 style="margin: 0 0 0.5em 0;">Payment Details</h4>
 
-<table class="table-tabular" style="margin: 0 0 1.5em 0; font-size:10px;">
+<table class="table-tabular" style="margin: 0 0 1em 0; font-size:10px;">
   <tr>
-    <td>Subtotal price:</td>
+    <td class='paymentColumn'>Subtotal price:</td>
     <td>{{ subtotal_price | minus: tax_price | money }}</td>
   </tr>
   
   <tr>
-    <td>Total tax:</td>
+    <td class='paymentColumn'>Total tax:</td>
     <td>{{ tax_price | money }}</td>
   </tr>
   
   {% for discount in discounts %}
   <tr>
-    <td>Includes discount "{{ discount.code }}"</td>
+    <td class='paymentColumn'>Includes discount "{{ discount.code }}"</td>
     <td>{{ discount.savings | money }}</td>
   </tr>
   {% endfor %}
   {% if shipping_address %}
     <tr>
-      <td>Shipping:</td>
+      <td class='paymentColumn'>Shipping:</td>
       <td>{{ shipping_price | money }}</td>
     </tr>
   {% endif %}
   <tr>
-    <td><strong>Total price:</strong></td>
-    <td><strong>{{ total_price | money }}</strong></td>
+    <td class='paymentColumn'><strong>Total price:</strong></td>
+    <td ><strong>{{ total_price | money }}</strong></td>
   </tr>
   {% if total_paid != total_price %}
     <tr>
-      <td><strong>Total paid:</strong></td>
+      <td class='paymentColumn'><strong>Total paid:</strong></td>
       <td><strong>{{ total_paid | money }}</strong></td>
     </tr>
     <tr>
-      <td><strong>Outstanding Amount:</strong></td>
+      <td class='paymentColumn'><strong>Outstanding Amount:</strong></td>
       <td><strong>{{ total_price | minus: total_paid | money }}</strong></td>
     </tr>
   {% endif %}
